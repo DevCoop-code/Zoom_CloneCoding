@@ -20,11 +20,23 @@ const server = http.createServer(app);
 
 const io = SocketIO(server);
 io.on("connection", socket => {
-    socket.on("enter_room", (msg, done) => {
-        console.log(msg);
-        setTimeout(() => {
-            done()
-        }, 10000);
+    socket.onAny((event) => {
+        console.log(`Socket Event:${event}`);
+    });
+
+    socket.on("enter_room", (roomName, done) => {
+        // console.log(roomName);
+        socket.join(roomName);
+
+        done();
+
+        console.log(`Send Welcome Event ${roomName}`);
+
+        socket.to(roomName).emit("welcome");
+        // console.log(socket.rooms);
+        // setTimeout(() => {
+        //     done()
+        // }, 10000);
     });
 });
 /*
