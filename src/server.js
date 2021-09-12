@@ -38,6 +38,18 @@ io.on("connection", socket => {
         //     done()
         // }, 10000);
     });
+
+    socket.on("disconnecting", () => {
+        socket.rooms.forEach(room => {
+            socket.to(room).emit("bye");
+        });
+    });
+
+    socket.on("new_message", (msg, room, done) => {
+        console.log(`new message \(msg) \(room)`);
+        socket.to(room).emit("new_message", msg);
+        done();
+    });
 });
 /*
 *** WebSocket Code ***
