@@ -6,7 +6,7 @@ const cameraBtn = document.getElementById("camera");
 const camerasSelect = document.getElementById("cameras");
 
 let myStream;
-let muted = true;
+let muted = false;
 let cameraOff = false;
 
 let roomName;
@@ -94,6 +94,13 @@ call.hidden = true;
 function handleCameraChange() {
     // console.log(camerasSelect.value)
     getMedia(camerasSelect.value);
+
+    if (myPeerConnection) {
+        const videoTrack = myStream.getVideoTracks()[0];
+        const videoSender = myPeerConnection.getSenders().find(sender => sender.track.kind === "video");
+        // console.log(videoSender);       // RTTCRtpSender
+        videoSender.replaceTrack(videoTrack);
+    }
 }
 camerasSelect.addEventListener("input", handleCameraChange);
 
