@@ -6,7 +6,7 @@ const cameraBtn = document.getElementById("camera");
 const camerasSelect = document.getElementById("cameras");
 
 let myStream;
-let muted = false;
+let muted = true;
 let cameraOff = false;
 
 let roomName;
@@ -143,10 +143,23 @@ socket.on("offer", async (offer) => {
     myPeerConnection.setLocalDescription(answer);
     socket.emit("answer", answer, roomName);
 });
+
+// Ice Candidate
+socket.on("ice", (candidate) => {
+    console.log("receive candidate");
+    myPeerConnection.addIceCandidate(candidate);
+});
 /*
 WebRTC
 */
+function handleIce(data) {
+    // console.log(data);
+    console.log("sent candidate");
+    socket.emit("ice", data.candidate, roomName);
+}
+
 function makeConnection() {
     myPeerConnection = new RTCPeerConnection();
+    myPeerConnection.addEventListener("icecandidate", handleIce);
     myStream.getTracks().forEach(track => myPeerConnection.addTrack(track, myStream));
 }
