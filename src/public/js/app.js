@@ -99,7 +99,7 @@ camerasSelect.addEventListener("input", handleCameraChange);
 
 const welcomeForm = welcome.querySelector("form");
 
-async function startMedia() {
+async function initCall() {
     welcome.hidden = true;
     call.hidden = false;
     await getMedia();
@@ -108,12 +108,13 @@ async function startMedia() {
     makeConnection();
 }
 
-function handleWelcomeSubmit(event) {
+async function handleWelcomeSubmit(event) {
     event.preventDefault();
 
     const input = welcomeForm.querySelector("input");
     // console.log(input.value);
-    socket.emit("join_room", input.value, startMedia);
+    await initCall();
+    socket.emit("join_room", input.value);
     roomName = input.value;
     input.value=""
 }
@@ -122,6 +123,7 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 /*
 Socket
 */
+// For existing member
 socket.on("welcome", async () => {
     // console.log("Somebody joined");
     const offer = await myPeerConnection.createOffer();
@@ -130,8 +132,16 @@ socket.on("welcome", async () => {
     // console.log(offer);
 });
 
-socket.on("offer", (offer) => {
+socket.on("answer", (answer) => {
+    myPeerConnection.setRemoteDescription(answer);
+});
 
+// For Newbie
+socket.on("offer", async (offer) => {
+    myPeerConnection.setRemoteDescription(offer);
+    const answer = await myPeerConnection.createAnswer();
+    myPeerConnection.setLocalDescription(answer);
+    socket.emit("answer", answer, roomName);
 });
 /*
 WebRTC
