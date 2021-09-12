@@ -158,8 +158,16 @@ function handleIce(data) {
     socket.emit("ice", data.candidate, roomName);
 }
 
+function handleAddStream(data) {
+    console.log("Got Stream Data");
+    const peerFace = document.getElementById("peerFace");
+    peerFace.srcObject = data.stream;
+
+}
+
 function makeConnection() {
     myPeerConnection = new RTCPeerConnection();
     myPeerConnection.addEventListener("icecandidate", handleIce);
+    myPeerConnection.addEventListener("addstream", handleAddStream);
     myStream.getTracks().forEach(track => myPeerConnection.addTrack(track, myStream));
 }
