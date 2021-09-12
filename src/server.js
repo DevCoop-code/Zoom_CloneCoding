@@ -3,7 +3,8 @@ import express from "express";
 
 // import WebSocket from "ws";
 
-import SocketIO from "socket.io";
+import { Server } from "socket.io";
+import { instrument } from "@socket.io/admin-ui";
 
 const app = express();
 
@@ -18,7 +19,15 @@ const handleListen = () => console.log('Listening on http://:3000');
 // app.listen(3000); 
 const server = http.createServer(app);
 
-const io = SocketIO(server);
+const io = new Server(server, {
+    cors: {
+        origin: ["https://admin.socket.io"],
+        credentials: true,
+    }
+});
+instrument(io, {
+    auth: false
+});
 
 function publicRooms() {
     const sids = io.sockets.adapter.sids;
