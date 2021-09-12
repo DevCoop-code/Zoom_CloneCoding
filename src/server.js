@@ -19,9 +19,25 @@ const handleListen = () => console.log('Listening on http://:3000');
 const server = http.createServer(app);
 
 const io = SocketIO(server);
+
+function publicRooms() {
+    const sids = io.sockets.adapter.sids;
+    const rooms = io.sockets.adapter.rooms;
+
+    const publicRooms = [];
+    rooms.forEach((_, key) => {
+        if(sids.get(key) === undefined) {
+            publicRooms.push(key);
+        }
+    });
+
+    return publicRooms;
+}
+
 io.on("connection", socket => {
     socket["nickname"] = "Anonymouse"
     socket.onAny((event) => {
+        console.log(io.sockets.adapter);
         console.log(`Socket Event:${event}`);
     });
 
@@ -34,16 +50,19 @@ io.on("connection", socket => {
         console.log(`Send Welcome Event ${roomName}`);
 
         socket.to(roomName).emit("welcome", socket.nickname);
-        // console.log(socket.rooms);
-        // setTimeout(() => {
-        //     done()
-        // }, 10000);
+
+        // Boradcast All connected sockets
+        io.sockets.emit("room_change", publicRooms());
     });
 
     socket.on("disconnecting", () => {
         socket.rooms.forEach(room => {
             socket.to(room).emit("bye", socket.nickname);
         });
+    });
+
+    socket.on("disconnect", () => {
+        io.sockets.emit("room_change", publicRooms());
     });
 
     socket.on("new_message", (msg, room, done) => {
