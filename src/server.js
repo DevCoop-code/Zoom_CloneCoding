@@ -19,9 +19,17 @@ const server = http.createServer(app);
 // Running HTTP & WebSocket Server Both
 const wss = new WebSocket.Server({server});
 
-function handleConnection(socket) {
-    console.log(socket);
-}
-wss.on("connection", handleConnection);
+wss.on("connection", (socket) => {
+    // console.log(socket); 
+    console.log("Connected to Browser");
+    socket.on("close", () => {
+        console.log("Disconnect from Browser");
+    });
+    socket.on("message", (message) => {
+        console.log(message.toString("ascii"));
+        socket.send(message.toString("ascii"));
+    });
+    socket.send("Hello !!");
+});
 
 server.listen(3000, handleListen);
