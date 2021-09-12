@@ -20,6 +20,7 @@ const server = http.createServer(app);
 
 const io = SocketIO(server);
 io.on("connection", socket => {
+    socket["nickname"] = "Anonymouse"
     socket.onAny((event) => {
         console.log(`Socket Event:${event}`);
     });
@@ -32,7 +33,7 @@ io.on("connection", socket => {
 
         console.log(`Send Welcome Event ${roomName}`);
 
-        socket.to(roomName).emit("welcome");
+        socket.to(roomName).emit("welcome", socket.nickname);
         // console.log(socket.rooms);
         // setTimeout(() => {
         //     done()
@@ -41,15 +42,17 @@ io.on("connection", socket => {
 
     socket.on("disconnecting", () => {
         socket.rooms.forEach(room => {
-            socket.to(room).emit("bye");
+            socket.to(room).emit("bye", socket.nickname);
         });
     });
 
     socket.on("new_message", (msg, room, done) => {
         console.log(`new message \(msg) \(room)`);
-        socket.to(room).emit("new_message", msg);
+        socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
         done();
     });
+
+    socket.on("nickname", nickname => socket["nickname"] = nickname);
 });
 /*
 *** WebSocket Code ***
