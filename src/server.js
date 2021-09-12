@@ -1,7 +1,9 @@
 import http from "http";
 import express from "express";
 
-import WebSocket from "ws";
+// import WebSocket from "ws";
+
+import SocketIO from "socket.io";
 
 const app = express();
 
@@ -16,27 +18,34 @@ const handleListen = () => console.log('Listening on http://:3000');
 // app.listen(3000); 
 const server = http.createServer(app);
 
-// Running HTTP & WebSocket Server Both
-const wss = new WebSocket.Server({server});
-
-const sockets = [];
-
-wss.on("connection", (socket) => {
-    socket["nickname"] = "Anonymous";
-    sockets.push(socket);
-    console.log("Connected to Browser");
-    socket.on("close", () => {
-        console.log("Disconnect from Browser");
-    });
-    socket.on("message", (message) => {
-        const parsed = JSON.parse(message);
-        if (parsed.type === "new_message") {
-            sockets.forEach(aSocket => aSocket.send(`${socket.nickname}: ${parsed.payload}`));
-        } else if (parsed.type === "nickname") {
-            socket["nickname"] = parsed.payload;
-        }
-        console.log(message.toString("utf8"));
-    });
+const io = SocketIO(server);
+io.on("connection", socket => {
+    console.log(socket);
 });
+/*
+*** WebSocket Code ***
+*/
+// Running HTTP & WebSocket Server Both
+// const wss = new WebSocket.Server({server});
+
+// const sockets = [];
+
+// wss.on("connection", (socket) => {
+//     socket["nickname"] = "Anonymous";
+//     sockets.push(socket);
+//     console.log("Connected to Browser");
+//     socket.on("close", () => {
+//         console.log("Disconnect from Browser");
+//     });
+//     socket.on("message", (message) => {
+//         const parsed = JSON.parse(message);
+//         if (parsed.type === "new_message") {
+//             sockets.forEach(aSocket => aSocket.send(`${socket.nickname}: ${parsed.payload}`));
+//         } else if (parsed.type === "nickname") {
+//             socket["nickname"] = parsed.payload;
+//         }
+//         console.log(message.toString("utf8"));
+//     });
+// });
 
 server.listen(3000, handleListen);
