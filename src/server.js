@@ -29,87 +29,12 @@ instrument(io, {
     auth: false
 });
 
-function publicRooms() {
-    const sids = io.sockets.adapter.sids;
-    const rooms = io.sockets.adapter.rooms;
-
-    const publicRooms = [];
-    rooms.forEach((_, key) => {
-        if(sids.get(key) === undefined) {
-            publicRooms.push(key);
-        }
-    });
-
-    return publicRooms;
-}
-
-function countRoom(roomName) {
-    return io.sockets.adapter.rooms.get(roomName)?.size
-}
-
-io.on("connection", socket => {
-    socket["nickname"] = "Anonymouse"
-    socket.onAny((event) => {
-        console.log(io.sockets.adapter);
-        console.log(`Socket Event:${event}`);
-    });
-
-    socket.on("enter_room", (roomName, done) => {
-        // console.log(roomName);
+io.on("connection", socket=>{
+    socket.on("join_room", (roomName, done) => {
         socket.join(roomName);
-
         done();
-
-        console.log(`Send Welcome Event ${roomName}`);
-
-        socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
-
-        // Boradcast All connected sockets
-        io.sockets.emit("room_change", publicRooms());
+        socket.to(roomName).emit("welcome")
     });
-
-    socket.on("disconnecting", () => {
-        socket.rooms.forEach(room => {
-            socket.to(room).emit("bye", socket.nickname, countRoom(room) - 1);
-        });
-    });
-
-    socket.on("disconnect", () => {
-        io.sockets.emit("room_change", publicRooms());
-    });
-
-    socket.on("new_message", (msg, room, done) => {
-        console.log(`new message \(msg) \(room)`);
-        socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
-        done();
-    });
-
-    socket.on("nickname", nickname => socket["nickname"] = nickname);
 });
-/*
-*** WebSocket Code ***
-*/
-// Running HTTP & WebSocket Server Both
-// const wss = new WebSocket.Server({server});
-
-// const sockets = [];
-
-// wss.on("connection", (socket) => {
-//     socket["nickname"] = "Anonymous";
-//     sockets.push(socket);
-//     console.log("Connected to Browser");
-//     socket.on("close", () => {
-//         console.log("Disconnect from Browser");
-//     });
-//     socket.on("message", (message) => {
-//         const parsed = JSON.parse(message);
-//         if (parsed.type === "new_message") {
-//             sockets.forEach(aSocket => aSocket.send(`${socket.nickname}: ${parsed.payload}`));
-//         } else if (parsed.type === "nickname") {
-//             socket["nickname"] = parsed.payload;
-//         }
-//         console.log(message.toString("utf8"));
-//     });
-// });
 
 server.listen(3000, handleListen);
